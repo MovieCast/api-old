@@ -12,10 +12,15 @@ server.connection({
 // Add the route
 server.route({
     method: 'GET',
-    path:'/hello', 
+    path: '/movies', 
     handler: function (request, reply) {
 
-        return reply('hello world');
+        var movies = [
+            { title: 'whatever', year: 2000 },
+            { title: 'whatever 2', year: 2016 }
+        ];
+
+        return reply(movies);
     }
 });
 
