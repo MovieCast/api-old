@@ -11,7 +11,7 @@ gulp.task('default', [
 gulp.task('build', () => {
     gulp.src('src/**/*.js')
         .pipe(babel({
-            presets: ['es2015']
+            presets: ['es2015', 'stage-0']
         }))
         .pipe(gulp.dest('dist'));
 });
