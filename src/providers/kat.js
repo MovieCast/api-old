@@ -65,93 +65,110 @@ export default class KatProvider {
         name = name.replace(/\./g, " ");
         let slug = name.replace(/\s+/g, "-").toLowerCase();
         const quality = torrent.title.match(regex)[3];
-        
-        const traktSearch = await this.traktApi.search(name);
-        const traktMovie = await this.traktApi.getMovie(traktSearch.ids["imdb"]);
-        
-        this.logger.debug(traktSearch);
-        this.logger.debug(traktMovie);
-        
-        const movie = {
-            _id: traktMovie.ids["imdb"],
-            imdb_id: traktMovie.ids["imdb"],
-            title: traktMovie.title,
-            year: traktMovie.year,
-            slug: traktMovie.ids["slug"],
-            synopsis: traktMovie.overview,
-            runtime: traktMovie.runtime,
-            rating: {
-                votes: traktMovie.votes,
-                percentage: Math.round(traktMovie.rating * 10)
-            },
-            images: {
-                fanart: traktMovie.images.fanart.full || null,
-                poster: traktMovie.images.poster.full || null,
-                banner: traktMovie.images.banner.full || null
-            },
-            country: traktMovie.language,
-            genres: traktMovie.genres.length > 0 ? traktMovie.genres : ["Unknown"],
-            released: new Date(traktMovie.released).getTime() / 1000.0,
-            trailer: traktMovie.trailer,
-            certification: traktMovie.certification,
-            torrents: {}
+
+        const traktSearch = await this.traktApi.search(name, 'movie');
+        if (traktSearch.length > 0 && traktSearch[0]) {
+            if(traktSearch[0].type == "movie") {
+                const traktMovie = await this.traktApi.getMovie(traktSearch[0].movie.ids["imdb"]);
+                if(typeof traktMovie == 'object') {
+                    const movie = {
+                        _id: traktMovie.ids["imdb"],
+                        imdb_id: traktMovie.ids["imdb"],
+                        title: traktMovie.title,
+                        year: traktMovie.year,
+                        slug: traktMovie.ids["slug"],
+                        synopsis: traktMovie.overview,
+                        runtime: traktMovie.runtime,
+                        rating: {
+                            votes: traktMovie.votes,
+                            percentage: Math.round(traktMovie.rating * 10)
+                        },
+                        images: {
+                            fanart: traktMovie.images.fanart.full || null,
+                            poster: traktMovie.images.poster.full || null,
+                            banner: traktMovie.images.banner.full || null
+                        },
+                        country: traktMovie.language,
+                        genres: traktMovie.genres.length > 0 ? traktMovie.genres : ["Unknown"],
+                        released: new Date(traktMovie.released).getTime() / 1000.0,
+                        trailer: traktMovie.trailer,
+                        certification: traktMovie.certification,
+                        torrents: {}
+                    }
+
+                    movie.torrents[quality] = {
+                        magnet: torrent.magnet,
+                        seeds: torrent.seeds,
+                        peers: torrent.peers
+                    };
+                    return movie;
+                } else {
+                    this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
+                }
+            } else {
+                this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
+            }
+        } else {
+            this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
         }
 
-        movie.torrents[quality] = {
-            magnet: torrent.magnet,
-            seeds: torrent.seeds,
-            peers: torrent.peers
-        };
 
-        return movie;
+        return null;
     }
 
-    async getMovieData(torrent) {
+    getMovieData(torrent) {
         const threeDimensions = /(.*).(\d{4}).[3Dd]\D+(\d{3,4}p)/;
         const fourKay = /(.*).(\d{4}).[4k]\D+(\d{3,4}p)/;
         const withYear = /(.*).(\d{4})\D+(\d{3,4}p)/;
-        
-        let movie;
+
         if (torrent.title.match(threeDimensions)) {
-            movie = await this.createMovie(torrent, threeDimensions);
+            return this.createMovie(torrent, threeDimensions);
         } else if (torrent.title.match(fourKay)) {
-            movie = await this.createMovie(torrent, fourKay);
+            return this.createMovie(torrent, fourKay);
         } else if (torrent.title.match(withYear)) {
-            movie = await this.createMovie(torrent, withYear);
+            return this.createMovie(torrent, withYear);
+        } else {
+            return null;
         }
-        
-        return movie;
     }
 
     getAllMovies(torrents) {
-        const movies = [];
-        return async.mapLimit(torrents, 10, torrent => {
-            this.getMovieData(torrent).then(movie => {
-                if (movie) {
-                    this.logger.debug(movie);
-                    if (movies.length != 0) {
-                        const matching = movies.filter((m) => {
-                            return m.title === movie.title && m.slug === movie.slug;
-                        });
+        return new Promise((resolve, reject) => {
+            const movies = [];
+            async.mapLimit(torrents, 10, torrent => {
+                this.logger.debug(`Getting movie data of movie ${torrent.title}`);
+                this.getMovieData(torrent).then(movie => {
+                    //console.log(movie);
+                    if (movie) {
+                        this.logger.debug(`Fetching movie ${movie.title}`);
+                        if (movies.length != 0) {
+                            const matching = movies.filter((m) => {
+                                return m.title === movie.title && m.slug === movie.slug;
+                            });
 
-                        if (matching.length != 0) {
-                            const index = movies.indexOf(matching[0]);
-                            if (!matching[0].torrents[movie.quality]) {
-                                matching[0].torrents[movie.quality] = movie.torrents[movie.quality];
+                            if (matching.length != 0) {
+                                const index = movies.indexOf(matching[0]);
+                                if (!matching[0].torrents[movie.quality]) {
+                                    matching[0].torrents[movie.quality] = movie.torrents[movie.quality];
+                                }
+
+                                movies.splice(index, 1, matching[0]);
+                            } else {
+                                this.logger.debug(`Added ${movie.title} to movies list, currently I have ${movies.length} movies fetched..`);
+                                movies.push(movie);
                             }
-
-                            movies.splice(index, 1, matching[0]);
                         } else {
+                            this.logger.debug(`Added ${movie.title} to movies list, currently I have ${movies.length} movies fetched..`);
                             movies.push(movie);
                         }
                     } else {
-                        movies.push(movie);
+                        this.logger.error(`An error occured while fetching data for the movie ${torrent.title}, skipping it!`);
                     }
-                }
-            }).catch(this.logger.error);
-        }).then((value) => {
-            return movies;
-        });
+                })
+            }).then((value) => {
+                resolve(movies);
+            });
+        }):
     }
 
     getAllTorrents(totalPages) {
@@ -161,7 +178,6 @@ export default class KatProvider {
             query.page = page + 1;
             this.logger.debug(`Fetching page ${query.page}...`);
             return this.katApi.search(query).then((result) => {
-                console.log(torrents);
                 torrents = torrents.concat(result.results);
             }).catch((err) => {
                 this.logger.error(err);
@@ -179,7 +195,6 @@ export default class KatProvider {
         this.logger.debug(`Fetching ${totalPages} pages...`);
         const torrents = await this.getAllTorrents(totalPages);
         const movies = await this.getAllMovies(torrents);
-        
 
         return async.mapSeries(movies, movie => {
             this.logger.debug(`Fetching trakt.tv info of movie ${movie.title}`);

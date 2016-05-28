@@ -26,8 +26,10 @@ export default class TraktApi {
      */
     getMovie(imdbId) {
         return new Promise((resolve, reject) => {
-            this.request(`/movies/${imdbId}?extended=full,image`)
-                .then(JSON.parse)
+            this.request(`/movies/${imdbId}?extended=full,images`)
+                .then(response => {
+                    resolve(JSON.parse(response));
+                })
                 .catch(reject);
         });
     }
@@ -40,8 +42,10 @@ export default class TraktApi {
      */
     search(name, type) {
         return new Promise((resolve, reject) => {
-            this.request(`/search?query=${name}`)
-                .then(JSON.parse)
+            this.request(`/search?query=${name}&type=${type}`)
+                .then(response => {
+                    resolve(JSON.parse(response));
+                })
                 .catch(reject);
         });
     }
