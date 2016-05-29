@@ -1,0 +1,24 @@
+{
+    "server": {
+        "host": "127.0.0.1",
+        "port": "8000",
+        "stripTrailingSlash": true
+    },
+    "mongo_url": "mongodb://localhost/moviecast-api",
+    "apis": {
+        "kat": {
+            "baseUrl": "https://kat.cr",
+            "timeout": "2000"
+        },
+        "trakt": {
+            "baseUrl": "https://api-v2launch.trakt.tv",
+            "timeout": "2000",
+            "key": "your trakt.tv api key here."
+        }
+    },
+    "endpoints": {
+        "movies": {
+            "moviesPerPage": 50
+        }
+    }
+}
