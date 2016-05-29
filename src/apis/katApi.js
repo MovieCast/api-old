@@ -8,7 +8,7 @@ import logger from '../logger';
  */
 export default class KatApi {
     constructor() {
-        this.url = 'https://kickassto.co/usearch/';
+        this.url = 'https://kat.cr/usearch/';
         this.logger = new logger();
         this.request = request.defaults({
             "headers": {
