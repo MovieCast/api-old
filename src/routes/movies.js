@@ -1,51 +1,52 @@
 import Movie from '../models/movie';
+import util from '../util';
+import config from '../../config.json';
 
-const projection = {
-  _id: 1,
-  imdb_id: 1,
-  title: 1,
-  year: 1,
-  images: 1,
-  slug: 1,
-  released: 1,
-  rating: 1,
-  torrents: 1
+// Since we dont need all the movie metadata, lets leave some stuff out
+const project = {
+    _id: 1,
+    title: 1,
+    year: 1,
+    images: 1,
+    released: 1,
+    rating: 1,
 };
 
 module.exports = [{
     method: 'GET',
     path: '/movies',
     handler: (request, reply) => {
-        Movie.count({}).exec().then((count) => {
-            const pages = Math.round(count / 10);
-            const docs = [];
-
-            for (let i = 1; i < pages + 1; i++)
-                docs.push("movies/" + i);
-
-            return reply(docs);
-        }).catch((err) => {
-            return reply(err);
-        });
+        Movie.count({}).exec().then(totalMovies => {
+            return reply({
+                totalPages: Math.ceil(totalMovies / config.endpoints.movies.moviesPerPage),
+                totalResults: totalMovies,
+                resultsPerPage: config.endpoints.movies.moviesPerPage
+            });
+        }).catch(err => {
+            return util.genericError(reply, 500, err);
+        })
     }
 }, {
     method: 'GET',
     path: '/movies/{page}',
     handler: (request, reply) => {
         const page = request.params.page - 1;
-        const offset = page * 10;
+        const offset = page * config.endpoints.movies.moviesPerPage;
 
         if (request.params.page === "all") {
             Movie.aggregate([{
-                $project: projection
+                $project: project
             }, {
                 $sort: {
                     title: -1
                 }
-            }]).exec().then((docs) => {
-                return reply(docs);
-            }).catch((err) => {
-                return reply(err);
+            }]).exec().then(movies => {
+                return reply({
+                    page: 'all',
+                    results: movies
+                });
+            }).catch(err => {
+                return util.genericError(reply, 500, err);
             });
         } else {
             let query = {};
@@ -56,8 +57,7 @@ module.exports = [{
 
             let sort = {
                 "rating.votes": parseInt(data.order, 10),
-                "rating.percentage": parseInt(data.order, 10),
-                "rating.watching": parseInt(data.order, 10)
+                "rating.percentage": parseInt(data.order, 10)
             };
 
             if (data.keywords) {
@@ -81,9 +81,6 @@ module.exports = [{
                     "rating.percentage": parseInt(data.order, 10),
                     "rating.votes": parseInt(data.order, 10)
                 };
-                if (data.sort == "trending") sort = {
-                    "rating.watching": parseInt(data.order, 10)
-                };
                 if (data.sort === "updated") sort = {
                     "released": parseInt(data.order, 10)
                 };
@@ -92,8 +89,8 @@ module.exports = [{
                 };
             }
 
-            if (data.genre && data.genre != "All") {
-                query.genres = data.genre.toLowerCase();
+            if (data.genre && data.genre != "all") {
+                query.genres = data.genre;
             }
 
             return Movie.aggregate([{
@@ -101,15 +98,18 @@ module.exports = [{
             }, {
                 $match: query
             }, {
-                $project: projection
+                $project: project
             }, {
                 $skip: offset
             }, {
-                $limit: 10
-            }]).exec().then((docs) => {
-                return reply(docs);
-            }).catch((err) => {
-                return reply(err);
+                $limit: config.endpoints.movies.moviesPerPage
+            }]).exec().then(movies => {
+                return reply({
+                    page: page + 1,
+                    results: movies
+                });
+            }).catch(err => {
+                return util.genericError(reply, 500, err);
             });
         }
     }

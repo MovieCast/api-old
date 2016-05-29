@@ -1,12 +1,13 @@
 import request from 'request-promise';
 import logger from '../logger';
+import config from '../../config.json';
 
 /**
  * The api fort trakt.tv get fetch movie details
  * @class TraktApi
  */
 export default class TraktApi {
-    constructor(config) {
+    constructor() {
         this.logger = new logger();
         this.request = request.defaults({
             "headers": {
@@ -15,12 +16,13 @@ export default class TraktApi {
                 "trakt-api-key": config.apis.trakt.key
             },
             "gzip": true,
-            "baseUrl": 'https://api-v2launch.trakt.tv'
+            "baseUrl": config.apis.trakt.baseUrl,
+            "timeout": parseInt(config.apis.trakt.timeout)
         });
     }
-    
+
     /**
-     * Searches for the given imdb id on trakt.tv to get some informationezz.
+     * Gets the movie with the given imdb id.
      * @param {String} imdbId - The imdbId of the movie (Can also be a slug or trakt.tv id)
      * @return {Object} The parsed api response
      */
@@ -35,7 +37,7 @@ export default class TraktApi {
     }
 
     /**
-     * Searches for the given imdb id on trakt.tv to get some informationezz.
+     * Searches for the given name on trakt.tv to get some informationezz.
      * @param {String} name - The name of the movie, show, season, episode or person
      * @param {String} type - The type, should be movie, show, season, episode or person
      * @return {Object} The parsed api response

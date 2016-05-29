@@ -8,16 +8,13 @@ export default mongoose.model('Movie', {
             unique: true
         }
     },
-    imdb_id: String,
     title: String,
     year: String,
-    slug: String,
-    synopsis: String,
+    description: String,
     runtime: String,
     rating: {},
-    country: String,
-    last_updated: Number,
     images: {},
+    country: String,
     genres: [],
     released: Number,
     trailer: String,

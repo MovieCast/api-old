@@ -1,6 +1,7 @@
 import request from 'request-promise';
 import cheerio from 'cheerio';
 import logger from '../logger';
+import config from '../../config.json';
 
 /**
  * A server version of the kat api
@@ -8,14 +9,16 @@ import logger from '../logger';
  */
 export default class KatApi {
     constructor() {
-        this.url = 'https://kat.cr/usearch/';
         this.logger = new logger();
         this.request = request.defaults({
             "headers": {
                 "Accept-Encoding": "gzip, deflate"
             },
-            "gzip": true
+            "gzip": true,
+            "baseUrl": config.apis.kat.baseUrl,
+            "timeout": parseInt(config.apis.kat.timeout)
         });
+
     }
 
     /**
@@ -30,14 +33,14 @@ export default class KatApi {
             const matcher = /\s+[a-zA-Z]+\s\d+[-]\d+\s[a-zA-Z]+\s(\d+)/;
             const totalPages = $("div.pages.botmarg5px.floatright").children("a.turnoverButton.siteButton.bigButton").last().text();
             const totalResults = $("table#mainSearchTable.doublecelltable").find("h2").find("span").text().match(matcher)[1];
-            
+
             const result = {
                 page: parseInt(page),
                 totalPages: parseInt(totalPages || 1),
                 totalResults: parseInt(totalResults),
                 results: []
             };
-            
+
             // Get the torrents from the page and parse them.   
             $("table.data").find("tr[id]").each(function() {
                 const torrent = {
@@ -58,7 +61,7 @@ export default class KatApi {
                 torrent.peers = torrent.seeds + torrent.leechs;
                 result.results.push(torrent);
             });
-            
+
             resolve(result);
         });
     }
@@ -69,7 +72,7 @@ export default class KatApi {
      * @return {String} The formatted query string.
      */
     createQuery(qObject) {
-        let query = "";
+        let query = "/usearch/";
 
         // Incase you want to add anything thats not in the list below...
         if (qObject.query) query += qObject.query;
@@ -93,8 +96,8 @@ export default class KatApi {
     search(qObject) {
         return new Promise((resolve, reject) => {
             let options = {
-                uri: this.url + this.createQuery(qObject),
-                transform: function (body) {
+                uri: this.createQuery(qObject),
+                transform: function(body) {
                     return cheerio.load(body);
                 }
             }

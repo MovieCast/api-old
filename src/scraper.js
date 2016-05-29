@@ -16,6 +16,9 @@ export default class Scraper {
         this.loadProviders();
     }
 
+    /**
+     * Loads all the providers in the providers directory.
+     */
     loadProviders() {
         file.walkSync(path.join(__dirname, "providers"), (folder, innerFolders, files) => {
             for (let file of files) {
@@ -31,19 +34,20 @@ export default class Scraper {
         this.logger.debug(`Loaded ${Object.keys(this.providers).length} providers`);
     }
 
-    scrape() {
-        return new Promise(resolve => {
-            for (let providerName in providerConfig) {
-                let providerInstance = this.providers[providerName];
-                if (providerInstance) {
-                    for (let query of providerConfig[providerName]) {
-                        let provider = new providerInstance(query)
-                        provider.fetch().then(results => {
-                            resolve(results.length);
-                        }).catch(this.logger.error);
-                    }
+    /**
+     * Starts the scraper
+     */
+    run() {
+        for (let providerName in providerConfig) {
+            let providerInstance = this.providers[providerName];
+            if (providerInstance) {
+                this.logger.info(`Starting scrape process for the provider: ${providerName}`);
+                for (let query of providerConfig[providerName]) {
+                    let provider = new providerInstance(query)
+                    provider.fetch()
+                        .catch(this.logger.error);
                 }
             }
-        });
+        }
     }
 }

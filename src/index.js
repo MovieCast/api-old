@@ -3,6 +3,9 @@ import logger from './logger';
 import config from '../config.json';
 import scraper from './scraper';
 import api from './api';
+import {
+    CronJob
+} from 'cron';
 
 class Main {
     constructor() {
@@ -10,25 +13,38 @@ class Main {
         this.logger = new logger();
         this.scraper = new scraper(config);
         this.api = new api(config.server);
-        
+
         this.loadStorage();
-        
+        this.loadCronTasks();
+
         this.run();
     }
-    
+
     loadStorage() {
         mongoose.connect(this.config.mongo_url);
         mongoose.connection.once('open', () => {
             this.logger.debug(`Connected to ${this.config.mongo_url}`);
         });
     }
-    
+
+    loadCronTasks() {
+        // Run scraper every 4 hours.
+    }
+
+    createCronTask(cronTime, cronFn) {
+        const job = new CronJob({
+            cronTime: cronTime,
+            onTick: () => {
+                cronFn;
+            },
+            start: true,
+            timeZone: 'America/Los_Angeles'
+        });
+    }
+
     run() {
         // Init API
-        //this.api.loadRoutes();
-        this.api.startServer(); 
-        
-        this.scraper.scrape().then(this.logger.debug).catch(this.logger.error);
+        this.api.startServer();
     }
 }
 
