@@ -29,6 +29,7 @@ class Main {
 
     loadCronTasks() {
         // Run scraper every 4 hours.
+        this.createCronTask('0 0 */4 * * *', this.scraper.scape());
     }
 
     createCronTask(cronTime, cronFn) {
