@@ -8,6 +8,10 @@ WORKDIR /app
 COPY package.json /app
 RUN npm install
 
+# Install gulp.js
+RUN npm install -g gulp
+RUN gulp build
+
 # Bundle app source
 COPY . /app
 
