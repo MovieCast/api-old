@@ -96,9 +96,9 @@ export default class KatProvider {
                             watching: traktMovieWatching.length
                         },
                         images: {
-                            fanart: traktMovie.images.fanart.full || null,
-                            poster: traktMovie.images.poster.full || null,
-                            banner: traktMovie.images.banner.full || null
+                            fanart: traktMovie.images.fanart || null,
+                            poster: traktMovie.images.poster || null,
+                            banner: traktMovie.images.banner || null
                         },
                         country: traktMovie.language,
                         genres: traktMovie.genres.length > 0 ? traktMovie.genres : ["Unknown"],
@@ -183,9 +183,11 @@ export default class KatProvider {
         this.logger.debug(`Fetching ${totalPages} pages...`);
         const torrents = await this.getAllTorrents(totalPages);
 
-        return async.mapLimit(torrents, 2, torrent => {
+        return async.mapLimit(torrents, 1, torrent => {
             this.getMovieData(torrent).then(movie => {
-                return this.saveMovie(movie);
+                if(movie) {
+                    return this.saveMovie(movie);
+                }
             }).catch(this.logger.error);
         });
     }
