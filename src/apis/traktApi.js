@@ -16,6 +16,7 @@ export default class TraktApi {
                 "trakt-api-key": config.apis.trakt.key
             },
             "gzip": true,
+            "json": true,
             "baseUrl": config.apis.trakt.baseUrl,
             "timeout": parseInt(config.apis.trakt.timeout)
         });
@@ -30,7 +31,17 @@ export default class TraktApi {
         return new Promise((resolve, reject) => {
             this.request(`/movies/${imdbId}?extended=full,images`)
                 .then(response => {
-                    resolve(JSON.parse(response));
+                    resolve(response);
+                })
+                .catch(reject);
+        });
+    }
+    
+    getMovieWatching(imdbId) {
+        return new Promise((resolve, reject) => {
+            this.request(`/movies/${imdbId}/watching`)
+                .then(response => {
+                    resolve(response);
                 })
                 .catch(reject);
         });
@@ -46,7 +57,7 @@ export default class TraktApi {
         return new Promise((resolve, reject) => {
             this.request(`/search?query=${name}&type=${type}`)
                 .then(response => {
-                    resolve(JSON.parse(response));
+                    resolve(response);
                 })
                 .catch(reject);
         });

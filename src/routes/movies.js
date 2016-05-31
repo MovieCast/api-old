@@ -81,6 +81,9 @@ module.exports = [{
                     "rating.percentage": parseInt(data.order, 10),
                     "rating.votes": parseInt(data.order, 10)
                 };
+                if(data.sort == "trending") sort = {
+                    "rating.watching": parseInt(data.order, 10)
+                };
                 if (data.sort === "updated") sort = {
                     "released": parseInt(data.order, 10)
                 };

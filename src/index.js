@@ -38,9 +38,9 @@ class Main {
             onTick: () => {
                 cronFn;
             },
-            start: true,
             timeZone: 'America/Los_Angeles'
         });
+        job.start();
     }
 
     run() {

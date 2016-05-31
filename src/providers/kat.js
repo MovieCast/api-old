@@ -83,6 +83,7 @@ export default class KatProvider {
             if (traktSearch[0].type == "movie") {
                 const traktMovie = await this.traktApi.getMovie(traktSearch[0].movie.ids["imdb"]);
                 if (typeof traktMovie == 'object') {
+                    const traktMovieWatching = await this.traktApi.getMovieWatching(traktSearch[0].movie.ids["imdb"]);
                     const movie = {
                         _id: traktMovie.ids["imdb"],
                         title: traktMovie.title,
@@ -91,7 +92,8 @@ export default class KatProvider {
                         runtime: traktMovie.runtime,
                         rating: {
                             votes: traktMovie.votes,
-                            percentage: Math.round(traktMovie.rating * 10)
+                            percentage: Math.round(traktMovie.rating * 10),
+                            watching: traktMovieWatching.length
                         },
                         images: {
                             fanart: traktMovie.images.fanart.full || null,
@@ -114,16 +116,16 @@ export default class KatProvider {
                     return movie;
                 } else {
                     this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
+                    return null;
                 }
             } else {
                 this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
+                return null;
             }
         } else {
             this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
+            return null;
         }
-
-
-        return null;
     }
 
     /**
@@ -181,10 +183,10 @@ export default class KatProvider {
         this.logger.debug(`Fetching ${totalPages} pages...`);
         const torrents = await this.getAllTorrents(totalPages);
 
-        return async.mapLimit(torrents, 10, torrent => {
+        return async.mapLimit(torrents, 2, torrent => {
             this.getMovieData(torrent).then(movie => {
                 return this.saveMovie(movie);
-            });
+            }).catch(this.logger.error);
         });
     }
 }
