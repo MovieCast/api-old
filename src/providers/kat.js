@@ -79,11 +79,12 @@ export default class KatProvider {
         const quality = torrent.title.match(regex)[3];
 
         const traktSearch = await this.traktApi.search(name, 'movie');
-        if (traktSearch.length > 0 && traktSearch[0]) {
-            if (traktSearch[0].type == "movie") {
-                const traktMovie = await this.traktApi.getMovie(traktSearch[0].movie.ids["imdb"]);
+        if (traktSearch.length > 0) {
+            const traktSearchItem = traktSearch.filter(item => item.type === 'movie' && item.movie.title === name)[0] || traktSearch[0];
+            if (traktSearchItem) {
+                const traktMovie = await this.traktApi.getMovie(traktSearchItem.movie.ids["imdb"]);
                 if (typeof traktMovie == 'object') {
-                    const traktMovieWatching = await this.traktApi.getMovieWatching(traktSearch[0].movie.ids["imdb"]);
+                    const traktMovieWatching = await this.traktApi.getMovieWatching(traktSearchItem.movie.ids["imdb"]);
                     const movie = {
                         _id: traktMovie.ids["imdb"],
                         title: traktMovie.title,
@@ -101,7 +102,7 @@ export default class KatProvider {
                             banner: traktMovie.images.banner || null
                         },
                         country: traktMovie.language,
-                        genres: traktMovie.genres.length > 0 ? traktMovie.genres : ["Unknown"],
+                        genres: traktMovie.genres && traktMovie.genres.length > 0 ? traktMovie.genres : ["Unknown"],
                         released: new Date(traktMovie.released).getTime() / 1000.0,
                         trailer: traktMovie.trailer,
                         certification: traktMovie.certification,
@@ -115,16 +116,13 @@ export default class KatProvider {
                     };
                     return movie;
                 } else {
-                    this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
-                    return null;
+                    throw new Error(`INVALIDIMDB: '${name}' wasn't found on trakt.tv`);
                 }
             } else {
-                this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
-                return null;
+                throw new Error(`NOTFOUND: '${name}' wasn't found on trakt.tv`);
             }
         } else {
-            this.logger.error(`Rip movie ${name} wasnt found on trakt.tv`);
-            return null;
+            throw new Error(`NORESULTS: '${name}' wasn't found on trakt.tv`);
         }
     }
 
@@ -146,29 +144,35 @@ export default class KatProvider {
         } else if (torrent.title.match(withYear)) {
             return this.createMovie(torrent, withYear);
         } else {
-            return null;
+            throw new Error(`NOREGEX: No regex found to match with the movie.`);
         }
     }
 
     /**
-     * Creates a torrent list with the given pages.
+     * Fetches all torrents.
      * @param {Number} totalPages - The pages to get
-     * @return {Array} A list of torrents
+     * @return {Array} A list of fetched torrents
      */
-    getAllTorrents(totalPages) {
-        let torrents = [];
+    fetchAllTorrents(totalPages) {
+        let fetched = 0;
         let query = this.query;
-        return async.timesSeries(totalPages, page => {
+        async.timesSeries(totalPages, page => {
             query.page = page + 1;
-            this.logger.debug(`Fetching page ${query.page}.`);
             return this.katApi.search(query).then((result) => {
-                torrents = torrents.concat(result.results);
+                return async.eachLimit(result.results, 2, torrent => {
+                    return this.getMovieData(torrent).then(movie => {
+                        return this.saveMovie(movie).then(result => {
+                            fetched++;
+                        });
+                    }).catch(err => {
+                        this.logger.error(`MovieData: ${err}`);
+                    });
+                });
             }).catch((err) => {
-                this.logger.error(err);
-                return err;
+                this.logger.error(`KatApi: ${err}`);
             });
-        }).then((value) => {
-            this.logger.debug(`Fetched ${torrents.length} torrents.`);
+        }).then(torrents => {
+            this.logger.info(`Fetched ${fetched} movies.`);
             return torrents;
         });
     }
@@ -180,15 +184,7 @@ export default class KatProvider {
     async fetch() {
         const firstSearch = await this.katApi.search(this.query);
         const totalPages = firstSearch.totalPages;
-        this.logger.debug(`Fetching ${totalPages} pages...`);
-        const torrents = await this.getAllTorrents(totalPages);
-
-        return async.mapLimit(torrents, 1, torrent => {
-            this.getMovieData(torrent).then(movie => {
-                if(movie) {
-                    return this.saveMovie(movie);
-                }
-            }).catch(this.logger.error);
-        });
+        this.logger.info(`Fetching ${totalPages} pages.`);
+        return this.fetchAllTorrents(totalPages);
     }
 }

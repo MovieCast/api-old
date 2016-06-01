@@ -13,7 +13,7 @@ export default class TraktApi {
             "headers": {
                 "Content-Type": "application/json",
                 "trakt-api-version": 2,
-                "trakt-api-key": config.apis.trakt.key
+                "trakt-api-key": process.env.CFG_APIS_TRAKT_KEY || config.apis.trakt.key
             },
             "gzip": true,
             "json": true,

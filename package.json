@@ -1,6 +1,6 @@
 {
   "name": "moviecast-api",
-  "version": "0.0.2",
+  "version": "0.1.1",
   "description": "Fetches movies from kat.cr",
   "main": "server.js",
   "scripts": {
