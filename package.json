@@ -2,9 +2,9 @@
   "name": "moviecast-api",
   "version": "0.1.1",
   "description": "Fetches movies from kat.cr",
-  "main": "server.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node dist/index.js"
   },
   "repository": {
     "type": "git",
