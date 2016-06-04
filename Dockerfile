@@ -10,10 +10,11 @@ RUN npm install
 
 # Install gulp.js
 RUN npm install -g gulp
-RUN gulp build
 
 # Bundle app source
 COPY . /app
+
+RUN gulp build
 
 EXPOSE 8000
 CMD ["npm", "start"]
