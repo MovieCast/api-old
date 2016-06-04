@@ -1,4 +1,4 @@
-FROM nodejs
+FROM node
 
 # Create app directory
 RUN mkdir -p /app
