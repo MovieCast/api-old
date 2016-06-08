@@ -18,6 +18,9 @@ export default class API {
             router: {
                 stripTrailingSlash: options.stripTrailingSlash
             },
+            routes: {
+                cors: true
+            },
             state: {
                 strictHeader: false
             }
