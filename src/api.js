@@ -18,6 +18,9 @@ export default class API {
             router: {
                 stripTrailingSlash: options.stripTrailingSlash
             },
+            state: {
+                strictHeader: false
+            }
         });
 
         this.loadRoutes();
