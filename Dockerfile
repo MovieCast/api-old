@@ -1,8 +1,5 @@
 FROM node
 
-# Install MongoDB
-RUN apt-get install mongodb-server -y
-
 # Create app directory
 RUN mkdir -p /app
 WORKDIR /app
