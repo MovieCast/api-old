@@ -4,9 +4,7 @@ import "babel-polyfill";
 import async from 'async-q';
 import katApi from '../apis/katApi';
 import traktApi from '../apis/traktApi';
-import logger from '../logger';
 import util from '../util';
-import config from '../config';
 import Movie from '../models/movie';
 
 /**
@@ -16,7 +14,6 @@ import Movie from '../models/movie';
  */
 export default class KatProvider {
     constructor(query) {
-        this.logger = new logger();
         this.util = new util();
         this.katApi = new katApi();
         this.traktApi = new traktApi();
@@ -38,7 +35,7 @@ export default class KatProvider {
             _id: movie._id
         }).exec();
         if (found) {
-            this.logger.debug(`${found.title} is an existing movie, updating the torrents.`)
+            logger.debug(`${found.title} is an existing movie, updating the torrents.`)
 
             // Combine/update 480p torrents
             if ((!movie.torrents["480p"] && found.torrents["480p"]) || (movie.torrents["480p"] && found.torrents["480p"] && movie.torrents["480p"].seeds < found.torrents["480p"].seeds) || (movie.torrents["480p"] && found.torrents["480p"] && movie.torrents["480p"].magnet === found.torrents["480p"].magnet)) {
@@ -59,7 +56,7 @@ export default class KatProvider {
                 _id: movie._id
             }, movie).exec();
         } else {
-            this.logger.debug(`${movie.title} is a new movie, saved.`);
+            logger.debug(`${movie.title} is a new movie, saved.`);
             return new Movie(movie).save();
         }
     };
@@ -165,14 +162,14 @@ export default class KatProvider {
                             fetched++;
                         });
                     }).catch(err => {
-                        this.logger.error(`MovieData: ${err}`);
+                        logger.error(`MovieData: ${err}`);
                     });
                 });
             }).catch((err) => {
-                this.logger.error(`KatApi: ${err}`);
+                logger.error(`KatApi: ${err}`);
             });
         }).then(torrents => {
-            this.logger.info(`Fetched ${fetched} movies.`);
+            logger.info(`Fetched ${fetched} movies.`);
             return torrents;
         });
     }
@@ -184,7 +181,7 @@ export default class KatProvider {
     async fetch() {
         const firstSearch = await this.katApi.search(this.query);
         const totalPages = firstSearch.totalPages;
-        this.logger.info(`Fetching ${totalPages} pages.`);
+        logger.info(`Fetching ${totalPages} pages.`);
         return this.fetchAllTorrents(totalPages);
     }
 }

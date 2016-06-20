@@ -9,24 +9,29 @@ import {
 
 class Main {
     constructor() {
-        this.config = config;
-        this.logger = new logger();
-        this.scraper = new scraper(config);
-        this.api = new api(config);
+        this.loadGlobals();
+        this.scraper = new scraper();
+        this.api = new api();
         this.loadStorage();
         this.loadCronTasks();
 
         this.run();
     }
 
+    loadGlobals() {
+        // Lets make this global so we dont have to define it 200000 times.
+        global.config = new config().load();
+        global.logger = new logger();
+    }
+
     loadStorage() {
-        if(!this.config.mongo_url) {
-            this.logger.error(`There was no mongo_url set, please read README.md how to set this.`);
+        if(!global.config.mongo_url) {
+            global.logger.error(`There was no mongo_url set, please read README.md how to set this.`);
             process.exit(1);
         }
-        mongoose.connect(this.config.mongo_url);
+        mongoose.connect(global.config.mongo_url);
         mongoose.connection.once('open', () => {
-            this.logger.debug(`Connected to ${this.config.mongo_url}`);
+            global.logger.debug(`Connected to ${global.config.mongo_url}`);
         });
     }
 

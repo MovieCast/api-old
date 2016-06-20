@@ -1,6 +1,4 @@
 import request from 'request-promise';
-import logger from '../logger';
-import config from '../config';
 
 /**
  * The api fort trakt.tv get fetch movie details
@@ -8,10 +6,9 @@ import config from '../config';
  */
 export default class TraktApi {
     constructor() {
-        this.logger = new logger();
 
         if(!config.apis.trakt.key) {
-            this.logger.error(`There was no trakt key set, please read README.md how to set this.`);
+            logger.error(`There was no trakt key set, please read README.md how to set this.`);
             process.exit(1);
         }
 

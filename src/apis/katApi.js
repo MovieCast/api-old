@@ -1,7 +1,5 @@
 import request from 'request-promise';
 import cheerio from 'cheerio';
-import logger from '../logger';
-import config from '../config';
 
 /**
  * A server version of the kat api
@@ -9,7 +7,6 @@ import config from '../config';
  */
 export default class KatApi {
     constructor() {
-        this.logger = new logger();
         this.request = request.defaults({
             "headers": {
                 "Accept-Encoding": "gzip, deflate"

@@ -1,4 +1,3 @@
-import logger from './logger';
 import file from 'file';
 import path from 'path';
 import providerConfig from '../providers.json';
@@ -8,10 +7,7 @@ import providerConfig from '../providers.json';
  * @class Scraper
  */
 export default class Scraper {
-    constructor(options) {
-        this.options = options;
-        this.logger = new logger();
-
+    constructor() {
         this.providers = {};
         this.loadProviders();
     }
@@ -31,7 +27,7 @@ export default class Scraper {
                 }
             }
         });
-        this.logger.debug(`Loaded ${Object.keys(this.providers).length} providers`);
+        logger.debug(`Loaded ${Object.keys(this.providers).length} providers`);
     }
 
     /**
@@ -41,11 +37,11 @@ export default class Scraper {
         for (let providerName in providerConfig) {
             let providerInstance = this.providers[providerName];
             if (providerInstance) {
-                this.logger.info(`Starting scrape process for the provider: ${providerName}`);
+                logger.info(`Starting scrape process for the provider: ${providerName}`);
                 for (let query of providerConfig[providerName]) {
                     let provider = new providerInstance(query)
                     provider.fetch()
-                        .catch(this.logger.error);
+                        .catch(logger.error);
                 }
             }
         }

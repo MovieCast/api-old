@@ -2,19 +2,17 @@ import _ from 'lodash';
 import hapi from 'hapi';
 import path from 'path';
 import file from 'file';
-import logger from './logger';
 
 /**
  * Serves the api server.
  */
 export default class API {
-    constructor(options) {
-        this.logger = new logger();
+    constructor() {
         this.server = new hapi.Server();
 
         this.server.connection({
-            host: options.server.host,
-            port: options.server.port,
+            host: config.server.host,
+            port: config.server.port,
             router: {
                 stripTrailingSlash: true
             },
@@ -43,7 +41,7 @@ export default class API {
                 routes.push.apply(routes, require(path.join(folder, file)));
             }
         });
-        this.logger.debug(`Loaded ${routes.length} routes`)
+        logger.debug(`Loaded ${routes.length} routes`)
         this.server.route(routes);
     }
 
@@ -55,7 +53,7 @@ export default class API {
             if (err) {
                 throw err;
             }
-            this.logger.info(`Server running at: ${this.server.info.uri}`);
+            logger.info(`Server running at: ${this.server.info.uri}`);
         });
     }
 }

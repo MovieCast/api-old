@@ -1,6 +1,5 @@
 import Movie from '../models/movie';
 import util from '../util';
-import config from '../config';
 
 // Since we dont need all the movie metadata, lets leave some stuff out
 const project = {
