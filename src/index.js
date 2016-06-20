@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import logger from './logger';
-import config from '../config.json';
+import config from './config';
 import scraper from './scraper';
 import api from './api';
 import {
@@ -12,8 +12,7 @@ class Main {
         this.config = config;
         this.logger = new logger();
         this.scraper = new scraper(config);
-        this.api = new api(config.server);
-
+        this.api = new api(config);
         this.loadStorage();
         this.loadCronTasks();
 
@@ -21,6 +20,10 @@ class Main {
     }
 
     loadStorage() {
+        if(!this.config.mongo_url) {
+            this.logger.error(`There was no mongo_url set, please read README.md how to set this.`);
+            process.exit(1);
+        }
         mongoose.connect(this.config.mongo_url);
         mongoose.connection.once('open', () => {
             this.logger.debug(`Connected to ${this.config.mongo_url}`);
@@ -29,18 +32,19 @@ class Main {
 
     loadCronTasks() {
         // Run scraper every 4 hours.
-        this.createCronTask('0 0 */4 * * *', this.scraper.run());
+        this.createCronTask('0 0 */4 * * *', this.scraper.run.bind(this.scraper));
     }
 
     createCronTask(cronTime, cronFn) {
         const job = new CronJob({
             cronTime: cronTime,
             onTick: () => {
-                cronFn;
+                cronFn();
             },
+            start: true,
             timeZone: 'America/Los_Angeles'
         });
-        job.start();
+        cronFn();
     }
 
     run() {

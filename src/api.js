@@ -13,11 +13,17 @@ export default class API {
         this.server = new hapi.Server();
 
         this.server.connection({
-            host: options.host,
-            port: options.port,
+            host: options.server.host,
+            port: options.server.port,
             router: {
-                stripTrailingSlash: options.stripTrailingSlash
+                stripTrailingSlash: true
             },
+            routes: {
+                cors: true
+            },
+            state: {
+                strictHeader: false
+            }
         });
 
         this.loadRoutes();
