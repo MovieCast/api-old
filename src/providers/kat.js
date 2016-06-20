@@ -6,7 +6,7 @@ import katApi from '../apis/katApi';
 import traktApi from '../apis/traktApi';
 import logger from '../logger';
 import util from '../util';
-import config from '../../config.json';
+import config from '../config';
 import Movie from '../models/movie';
 
 /**
