@@ -3,6 +3,7 @@ import logger from './logger';
 import config from './config';
 import scraper from './scraper';
 import api from './api';
+import cache from './cache';
 import {
     CronJob
 } from 'cron';
@@ -22,6 +23,7 @@ class Main {
         // Lets make this global so we dont have to define it 200000 times.
         global.config = new config().load();
         global.logger = new logger();
+        global.cache = new cache();
     }
 
     loadStorage() {
