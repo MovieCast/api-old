@@ -54,8 +54,8 @@ export default class Scraper {
                 cache.set('status', `Scraping for the ${providerName} provider`);
                 for (let query of providerConfig[providerName]) {
                     let provider = new providerInstance(query)
-                    //provider.fetch()
-                    //    .catch(logger.error);
+                    provider.fetch()
+                        .catch(logger.error);
                 }
                 //TODO: Check when the provider is done and change status to online
                 //cache.set('status', 'online');
