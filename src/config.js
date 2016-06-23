@@ -7,7 +7,7 @@ export default class Config {
     get defaults() {
         return {
             server: {
-                host: env.SERVER_HOST || "127.0.0.1",
+                host: env.SERVER_HOST || "0.0.0.0",
                 port: env.SERVER_PORT || "8000"
             },
             mongo_url: env.MONGO_URL || null,
@@ -39,9 +39,9 @@ export default class Config {
         let config = {};
         try {
             config = _.merge(this.defaults, require('../config.json'));
-        } catch(e) {
+        } catch (e) {
             this.logger.warn('There was no config.json found, using defaults.');
-            config =  this.defaults;
+            config = this.defaults;
         } finally {
             this.logger.info(`Done with loading configs, let's continue.`);
             return config;

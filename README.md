@@ -22,7 +22,7 @@ When you are done with the configuration of the api, simply run `npm start` or `
 For using docker you can just run the following commands:
 ```
 docker pull moviecast/api
-docker run -t -i -d -p 8000:8000 -e MONGO_URL='the connection url for mongodb' \
+docker run -it -d -p 8000:8000 -e MONGO_URL='the connection url for mongodb' \
 -e TRAKT_API_KEY='trakt key goes here' moviecast/api
 ```
 To see which environment variables you can set, checkout [configuration](https://github.com/MovieCast/api/wiki/Configuration).
