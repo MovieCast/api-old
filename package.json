@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/MovieCast/api/issues"
   },
-  "homepage": "https://github.com/MovieCast/api#readme"
+  "homepage": "https://github.com/MovieCast/api#readme",
+  "dependencies": {
+    "cheerio": "^0.20.0",
+    "config": "^1.21.0",
+    "request": "^2.72.0"
+  }
 }
