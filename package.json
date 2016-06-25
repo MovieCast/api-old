@@ -1,0 +1,19 @@
+{
+  "name": "moviecast-api",
+  "version": "0.2.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MovieCast/api.git"
+  },
+  "author": "MovieCast",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/MovieCast/api/issues"
+  },
+  "homepage": "https://github.com/MovieCast/api#readme"
+}
