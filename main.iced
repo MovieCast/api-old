@@ -1,18 +1,18 @@
+# start webapi
+models = require './models'
+
 express = require 'express'
 app = express()
 
-Sequelize = require 'sequelize'
-sequelize = new Sequelize('')
+app.set 'port', process.env.PORT or 3000
 
-Movie = sequelize.define('movie',
-  name: Sequelize.STRING
-  description: Sequelize.STRING
-)
+models.sequelize.sync().then ->
+  app.listen app.get('port'), ->
+    console.log "listening on port #{ app.get 'port' }"
 
-# todo: sequelize.sync()
+# start providers
+providers = require('config').providers
 
-app.get '/', (req, res) ->
-  Movie.findAll().then (projects) ->
-    res.json(projects)
-
-app.listen 3000
+for provider in providers
+  ep = require "./providers/#{ provider }.iced"
+  ep.initialize
