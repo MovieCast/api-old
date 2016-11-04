@@ -1,6 +1,8 @@
 # [MovieCast API](https://github.com/MovieCast/api)
 [![Build Status](https://travis-ci.org/MovieCast/api.svg?branch=master)](https://travis-ci.org/MovieCast/desktop)
 
+**Kickass got taken down and this API is no longer working, don't even try**
+
 Fetches movies from kat.cr
 
 Before explaining anything we like to mention that if you are running the MovieCast API in a production environment, we highly recommend using Nginx as a reverse proxy.
